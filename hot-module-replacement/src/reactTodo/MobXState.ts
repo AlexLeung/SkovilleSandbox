@@ -3,7 +3,11 @@ import {observable} from 'mobx';
 class MobXState {
     @observable someText = "54321go";
     @observable enabled = true;
-    toggle() {
+
+    constructor() {
+    }
+
+    async toggle() {
         this.enabled = !this.enabled;
     }
 }

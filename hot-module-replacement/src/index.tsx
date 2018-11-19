@@ -1,9 +1,10 @@
+import './send-log';
 console.log("index.ts is running");
 import { valueToLog } from './exports-string';
 import { counterElement } from './counter';
 import { texting } from './testing';
 import {render} from 'react-dom';
-import {App} from './reactReduxTodo/App';
+import {App} from './reactTodo/App';
 import React from 'react';
 
 const reactAppContainerId = "reactAppContainer";
@@ -39,6 +40,7 @@ el.append(texElm2);
 el.append(counterElement);
 
 if (module.hot) {
+    console.log("module is hot");
     module.hot.accept('./exports-string', () => {
         console.log("accepting ./exports-string.ts");
         const { valueToLog } = require('./exports-string'); // original imported value doesn't update, so you need to import it again

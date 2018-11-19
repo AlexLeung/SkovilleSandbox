@@ -13,7 +13,7 @@ export class AnotherVisual extends React.Component {
     constructor(props) {
         super(props);
         this.hello = this.hello.bind(this);
-        this.fuck = this.fuck.bind(this);
+        this.onClickHandler = this.onClickHandler.bind(this);
         module.hot.accept('./appStyling', () => {
             console.log("accepting ./appStyling");
             const {styling2} = require('./appStyling');
@@ -29,7 +29,7 @@ export class AnotherVisual extends React.Component {
         mobXState.someText = e.target.value
     }
 
-    fuck() {
+    onClickHandler() {
         mobXState.toggle();
     }
 
@@ -40,7 +40,7 @@ export class AnotherVisual extends React.Component {
                 <br />
                 <input type="text" value={mobXState.someText} onChange={this.hello} />
                 <br />
-                {mobXState.enabled?"enabled":"disabled"}<input type="button" value="diable" onClick={this.fuck} />
+                {mobXState.enabled?"enabled":"disabled"}<input type="button" value="diable" onClick={this.onClickHandler} />
             </div>
         );
     }

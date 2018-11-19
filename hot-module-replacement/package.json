@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "version": "1.0.0",
   "scripts": {
-    "dev": "webpack-dev-server --hot --inline --mode development"
+    "dev": "ts-node ./tooling/server.ts"
   },
   "devDependencies": {
     "@types/react": "^16.7.6",
@@ -13,9 +13,9 @@
     "@types/webpack-env": "^1.13.6",
     "awesome-typescript-loader": "^5.2.1",
     "html-webpack-plugin": "^3.2.0",
+    "ts-node": "^7.0.1",
     "typescript": "^3.1.6",
     "webpack": "^4.5.0",
-    "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.10"
   },
   "dependencies": {
