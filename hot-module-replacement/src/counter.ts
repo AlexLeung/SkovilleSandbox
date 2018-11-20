@@ -7,10 +7,12 @@ counterElement.style.cssText = style;
 if(appState.getIntervalId()) {
     clearInterval(appState.getIntervalId());
 }
-const intId = setInterval(function() {
-    appState.setElapsedSeconds(appState.getElapsedSeconds()+1);
+const intId = setInterval(updateCounter, 1000);
+function updateCounter() {
     counterElement.innerHTML = ""+appState.getElapsedSeconds();
-}, 1000);
+    appState.setElapsedSeconds(appState.getElapsedSeconds()+1);
+}
+updateCounter();
 appState.setIntervalId(intId);
 if(module.hot) {
     module.hot.accept("./counter-style", function() {

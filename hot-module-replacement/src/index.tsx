@@ -15,7 +15,6 @@ if(!reactContainer) {
     document.body.append(reactContainer);
 }
 render(<App />, reactContainer);
-
 const mainElementId = "application";
 let el = document.getElementById(mainElementId);
 if(!el) {

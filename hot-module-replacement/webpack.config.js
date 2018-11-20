@@ -5,8 +5,10 @@ module.exports = {
     devtool: 'eval',
     mode: 'development',
     entry: [
-        'webpack-dev-server/client?http://localhost:8080',
-        'webpack/hot/only-dev-server',
+        //'webpack-dev-server/client?http://localhost:8080',
+        './tooling/hot_entry_clients/typescript-dev-server/websocket?http://localhost:8080',
+        //'webpack/hot/dev-server',
+        './tooling/hot_entry_clients/typescript-dev-server/browser-reload',
         './src/index.tsx',
     ],
     module: {
