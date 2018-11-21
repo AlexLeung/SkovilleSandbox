@@ -1,2 +1,2 @@
 console.log("testing.ts is running");
-export const texting = "here";
+export const texting = "got milk?";
