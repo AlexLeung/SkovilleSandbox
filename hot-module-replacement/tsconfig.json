@@ -6,6 +6,6 @@
         "allowSyntheticDefaultImports": true,
         "jsx": "react",
         "lib": ["dom", "es2015"],
-        "types": ["webpack-env","node"]
+        "types": ["webpack-env"]
     }
 }
