@@ -1,5 +1,5 @@
-import './send-log';
-console.log("index.tsx is running");
+import '../send-log';
+console.log("index.ts is running");
 import { containerElement } from './hmr-test';
 document.body.append(containerElement);
 if (module.hot) {

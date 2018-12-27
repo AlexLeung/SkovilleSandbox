@@ -9,14 +9,17 @@ module.exports = {
         './tooling/hot_entry_clients/typescript-dev-server/websocket?http://localhost:8080',
         //'webpack/hot/dev-server',
         './tooling/hot_entry_clients/typescript-dev-server/browser-reload',
-        './src/index.tsx',
+        './src/web/index.ts',
     ],
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
                 use: {
-                    loader: 'awesome-typescript-loader'
+                    loader: 'awesome-typescript-loader',
+                    options: {
+                        silent: true
+                    }
                 }
             }
         ]
