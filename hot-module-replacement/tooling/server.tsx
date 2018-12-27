@@ -1,15 +1,16 @@
 import webpack from 'webpack';
 import path from 'path';
 var WebpackDevServer = require('webpack-dev-server');
-import {config} from './json-intake';
+var config = require('../webpack.config');
+import {port} from './client/universal';
 
 const OrigHMREntries = [
-    `webpack-dev-server/client?http://localhost:${config.port}`,
+    `webpack-dev-server/client?http://localhost:${port}`,
     'webpack/hot/dev-server'
 ];
 const CustomHMREntries = [
-    `./tooling/client/typescript-dev-server/websocket?http://localhost:${config.port}`,
-    './tooling/client/typescript-dev-server/browser-reload',
+    `./tooling/hot_entry_clients/typescript-dev-server/websocket?http://localhost:${port}`,
+    './tooling/hot_entry_clients/typescript-dev-server/browser-reload',
 ];
 const serverEntries = [
     './server_sample/server.tsx'
@@ -18,9 +19,8 @@ const webEntries = [
     './src/index.tsx'
 ];
 
-function generateWebpackConfig(entries: string[], dev: boolean, target: 'web' | 'node', bundleName: string): webpack.Configuration {
-    const outPath = path.resolve('./dist');
-    const config: webpack.Configuration = {
+function generateWebpackConfig(entries: string[], dev: boolean, target: 'web' | 'node'): webpack.Configuration {
+    const config = {
         devtool: 'eval',
         mode: dev ? 'development' : 'production',
         entry: [
@@ -28,8 +28,8 @@ function generateWebpackConfig(entries: string[], dev: boolean, target: 'web' | 
             ...entries
         ],
         output: {
-            path: path.resolve('./dist'),
-            filename: bundleName
+            path: path.resolve(),
+            filename: ''
         },
         module: {
             rules: [
@@ -42,26 +42,20 @@ function generateWebpackConfig(entries: string[], dev: boolean, target: 'web' | 
             ]
         },
         plugins: [
-            ...(dev ? [new webpack.HotModuleReplacementPlugin(), new webpack.NoEmitOnErrorsPlugin()]: [])
+            ...(hmr ? [new webpack.HotModuleReplacementPlugin(), new webpack.NoEmitOnErrorsPlugin()]: [])
         ],
         resolve: {
             extensions: ['.tsx', '.ts', '.js']
         },
-        target,
+        target
     };
     return config;
 }
 
-const webConfig = generateWebpackConfig(webEntries, true, "web", 'web.js');
-const serverConfig = generateWebpackConfig(serverEntries, true, 'node', 'server.js');
-
+const webConfig = generateWebpackConfig(webEntries, true, "web");
+const serverConfig = generateWebpackConfig(serverEntries, true, 'node');
 const web = true;
 
-const applicationConfig = web ? webConfig : serverConfig;
-const devEntryConfig = generateWebpackConfig(['./tooling/universal.ts'], false, web ? 'web' : 'node', web ? 'web.js' : 'server.js');
-console.log(JSON.stringify(devEntryConfig));
-webpack(devEntryConfig);
-/*
 new WebpackDevServer(webpack(config), {
     publicPath: '/',
     hot: true,
@@ -77,4 +71,3 @@ new WebpackDevServer(webpack(config), {
     }
     console.log(`Listening at localhost:${port}`);
 });
-*/
