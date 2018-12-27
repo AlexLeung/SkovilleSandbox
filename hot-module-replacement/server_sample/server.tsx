@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
             <html>
                 <head>
                     <meta charSet="UTF-8" />
-                    <title>Universal TypeScript HMR Server</title>
+                    <title>Webpack Universal HMR Server</title>
                 </head>
                 <body>
                     <script type="text/javascript" src="/main.js" />
@@ -41,6 +41,6 @@ app.get('/', (req, res) => {
     );
 });
 app.get('/main.js', (req, res) => {
-    res.sendFile(path.resolve('./dist/server.js'));
+    res.sendFile(path.resolve('./dist/web.js'));
 });
 app.listen(3000);
