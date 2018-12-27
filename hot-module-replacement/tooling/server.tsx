@@ -1,14 +1,14 @@
-import webpack, { compilation } from 'webpack';
+import webpack from 'webpack';
 import path from 'path';
 var WebpackDevServer = require('webpack-dev-server');
-import {port} from './constants';
+import {config} from './json-intake';
 
 const OrigHMREntries = [
-    `webpack-dev-server/client?http://localhost:${port}`,
+    `webpack-dev-server/client?http://localhost:${config.port}`,
     'webpack/hot/dev-server'
 ];
 const CustomHMREntries = [
-    `./tooling/client/typescript-dev-server/websocket?http://localhost:${port}`,
+    `./tooling/client/typescript-dev-server/websocket?http://localhost:${config.port}`,
     './tooling/client/typescript-dev-server/browser-reload',
 ];
 const serverEntries = [
@@ -24,7 +24,7 @@ function generateWebpackConfig(entries: string[], dev: boolean, target: 'web' | 
         devtool: 'eval',
         mode: dev ? 'development' : 'production',
         entry: [
-            ...(dev ? OrigHMREntries : []),
+            ...(dev ? CustomHMREntries : []),
             ...entries
         ],
         output: {
@@ -58,19 +58,11 @@ const serverConfig = generateWebpackConfig(serverEntries, true, 'node', 'server.
 const web = true;
 
 const applicationConfig = web ? webConfig : serverConfig;
-
-// We want to write out a static file whose job is to reference the webpack dev server for the real code.
-const devEntryConfig = generateWebpackConfig(['./tooling/client/universal.ts'], false, web ? 'web' : 'node', web ? 'web.js' : 'server.js');
-webpack(devEntryConfig).run(function(err, stats) {
-    if(stats.hasErrors()) {
-        console.log("errors");
-        console.error(stats.compilation.errors);
-    } else {
-        console.log("done");
-    }
-});
-
-new WebpackDevServer(webpack(applicationConfig), {
+const devEntryConfig = generateWebpackConfig(['./tooling/universal.ts'], false, web ? 'web' : 'node', web ? 'web.js' : 'server.js');
+console.log(JSON.stringify(devEntryConfig));
+webpack(devEntryConfig);
+/*
+new WebpackDevServer(webpack(config), {
     publicPath: '/',
     hot: true,
     inline: true,
@@ -85,3 +77,4 @@ new WebpackDevServer(webpack(applicationConfig), {
     }
     console.log(`Listening at localhost:${port}`);
 });
+*/
