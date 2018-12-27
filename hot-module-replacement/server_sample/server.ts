@@ -1,3 +1,4 @@
+/*
 import http from 'http';
 import {message} from './wording';
 
@@ -20,3 +21,4 @@ var httpServer = http.createServer(function(req, res) {
         res.end();
     });
 }).listen(8000);
+*/

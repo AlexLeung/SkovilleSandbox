@@ -5,7 +5,7 @@ class AppState {
     private intervalId;
 
     constructor() {
-        console.log("AppState constructor running");
+        console.log("AppState constructor is running");
     }
 
     public setIntervalId(newId) {
