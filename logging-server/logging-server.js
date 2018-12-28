@@ -1,4 +1,7 @@
 var http = require('http');
+// Eventually we want to utilize sequence numbers so that messages that arrive out-of-order are printed
+// in-order, but we will wait to add in this fix until the logging server is more integrated into an actual
+// solution.
 var httpServer = http.createServer(function(req, res) {
     var headers = {};
     res.setHeader('Access-Control-Allow-Origin', '*');
