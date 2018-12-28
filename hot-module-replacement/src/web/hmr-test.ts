@@ -3,9 +3,11 @@ import {appState} from './hmr-test-state';
 import {style} from './hmr-test-style';
 
 export const containerElement = document.createElement("div");
+containerElement.setAttribute("id", "container-el");
 containerElement.style.cssText = style;
 
 const numberElement = document.createElement("div");
+numberElement.setAttribute("id", "number-el");
 containerElement.append(numberElement);
 function updateNumber() {
     numberElement.innerHTML = ""+appState.getCurNumber();
@@ -27,3 +29,4 @@ if(module.hot) {
         containerElement.style.cssText = style;
     });
 }
+console.log("HELLO WORLD");

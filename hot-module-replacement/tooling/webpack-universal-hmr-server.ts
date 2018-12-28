@@ -6,6 +6,7 @@ export class WebpackUniversalHMRServer {
 
     private compiler: webpack.Compiler;
     private server: WebpackDevServer;
+    private waitingResolves: ((stats: Stats) => void)[];
 
     constructor(port:number,quiet:boolean) {
         this.compiler = webpack(config);
@@ -23,11 +24,26 @@ export class WebpackUniversalHMRServer {
                 console.log(`${WebpackUniversalHMRServer.name} listening at localhost:${port}`);
             }
         });
+        this.waitingResolves = [];
+        this.compiler.hooks.done.tap(WebpackUniversalHMRServer.name, (stats: Stats) => {
+            if(this.waitingResolves.length > 0) {
+                for(const resolve of this.waitingResolves) {
+                    resolve(stats);
+                }
+                this.waitingResolves = [];
+            }
+        });
     }
 
-    registerLoadedHandler(f: (stats:Stats)=>void) {
-        this.compiler.hooks.done.tap(WebpackUniversalHMRServer.name, function(stats: Stats) {
-            f(stats);
+    async waitUntilNextEmission() {
+        return new Promise((resolve, reject) => {
+            this.waitingResolves.push((stats: Stats) => {
+                if(stats.hasErrors()) {
+                    reject(stats.compilation.errors.join("\n"));
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 
