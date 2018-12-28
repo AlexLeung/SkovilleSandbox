@@ -1,5 +1,6 @@
 import webpack, { Stats } from 'webpack';
-import WebpackDevServer from 'webpack-dev-server';
+//import WebpackDevServer from 'webpack-dev-server';
+import WebpackDevServer from './server/Server';
 var config = require('../webpack.config');
 
 export class WebpackUniversalHMRServer {

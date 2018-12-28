@@ -107,7 +107,9 @@ const GREY = {name: "grey", rgb:"rgb(128, 128, 128)"};
     } finally {
         console.log("cleaning up.");
         await webdriver.close();
+        console.log("webdriver closed.");
         await hmrServer.close();
+        console.log("hmrServer closed.");
         process.exit();
     }
 })();
