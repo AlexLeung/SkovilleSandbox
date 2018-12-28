@@ -4,7 +4,6 @@
 // closeable. If we wanted to use the thread route, we'd need to figure out a way to spwn a new ts-node thread rather than
 // just a generic node thread, which seems to be more time than it's worth.
 import {WebpackUniversalHMRServer} from '../tooling/webpack-universal-hmr-server';
-import { Stats } from 'webpack';
 import selenium from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox';
 import path from 'path';
