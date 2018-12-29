@@ -23,9 +23,9 @@ buttonElement.onclick = updateNumber;
 containerElement.append(buttonElement);
 
 if(module.hot) {
-    module.hot.accept("./hmr-test-style", function() {
+    module.hot.accept("./hmr-test-style", async function() {
         console.log("accepting ./hmr-test-style");
-        const {style} = require("./hmr-test-style");
+        const {style} = await import("./hmr-test-style");
         containerElement.style.cssText = style;
     });
 }
