@@ -5,7 +5,8 @@
 
 var url = require('url');
 var stripAnsi = require('strip-ansi');
-var log = require('loglevel').getLogger('webpack-dev-server');
+import loglevel from 'loglevel';
+const log = loglevel.getLogger('webpack-dev-server')
 var socket = require('../webpack-dev-server/socket');
 var overlay = require('../webpack-dev-server/overlay');
 
@@ -59,7 +60,7 @@ var ERROR = 'error';
 var NONE = 'none';
 
 // Set the default log level
-log.setDefaultLevel(INFO);
+log.setDefaultLevel('info');
 
 // Send messages to the outside, so plugins can consume it.
 function sendMsg(type, data?) {
