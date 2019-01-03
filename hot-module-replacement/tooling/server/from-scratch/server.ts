@@ -2,16 +2,17 @@ import webpack from "webpack";
 import webpackDevMiddleware from 'webpack-dev-middleware';
 import express from 'express';
 import http from 'http';
+import {URL} from 'url';
 import sockjs from 'sockjs';
 
-enum ClientLogLevel {
+export enum ClientLogLevel {
     NONE = 'none',
     INFO = 'info',
     ERROR = 'error',
     WARNING = 'warning'
 }
 
-enum ServerLogLevel {
+export enum ServerLogLevel {
     INFO = "info",
     WARN = "warn",
     ERROR = "error",
@@ -39,8 +40,7 @@ function createLogger (options) {
 }
 
 // Here is an attempt at creating a webpack dev server from scratch without really knowing much about how it should work.
-class WebpackDevSecOpsServer {
-
+export class WebpackDevSecOpsServer {
     private sockets: sockjs.Connection[];
     private middleware: webpackDevMiddleware.WebpackDevMiddleware;
     private app: express.Express;
@@ -167,13 +167,15 @@ class WebpackDevSecOpsServer {
         return returnValue;
     }
 
-    public close() {
+    public close(cb: Function) {
         this.sockets.forEach((socket) => {
             socket.close();
         });
         this.sockets = [];
         this.middleware.close(() => {
-            this.listeningApp.close();
+            this.listeningApp.close(function() {
+                cb();
+            });
         });
     }
 
@@ -186,8 +188,32 @@ class WebpackDevSecOpsServer {
         });
     }
 
-    private serveMagicHtml() {
-
+    private serveMagicHtml(req: express.Request, res: express.Response, next: Function) {
+        const _path = req.path;
+        try {
+            const fileName = this.middleware.getFilenameFromUrl(`${_path}.js`)
+            if(fileName === false) return next();
+            const isFile = this.middleware.fileSystem.statSync(fileName).isFile();
+            if (!isFile) return next();
+            const parsed = new URL(req.protocol + "://" + req.hostname + req.originalUrl);
+            console.log("parsed.search = " + parsed.search);
+            // Serve a page that executes the javascript
+            res.write(`
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <meta charset="utf-8"/>
+                    </head>
+                    <body>
+                        <script type="text/javascript" charset="utf-8" src="${_path}.js${parsed.search || ''}">
+                        </script>
+                    </body>
+                </html>
+            `);
+            res.end('');
+        } catch (err) {
+            return next();
+        }
     }
 
     private _sendStats(sockets: sockjs.Connection[], stats, force) {
@@ -206,4 +232,4 @@ class WebpackDevSecOpsServer {
             this.sockWrite(sockets, 'ok');
         }
     }
-}
+};

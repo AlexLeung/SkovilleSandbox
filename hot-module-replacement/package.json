@@ -6,7 +6,8 @@
   "version": "1.0.0",
   "scripts": {
     "hmr": "ts-node ./tooling/command-line-entry.ts",
-    "test": "ts-node ./test/web.test.ts"
+    "test": "ts-node ./test/web.test.ts",
+    "ts-node": "ts-node ./test.ts"
   },
   "devDependencies": {
     "@babel/generator": "^7.2.2",

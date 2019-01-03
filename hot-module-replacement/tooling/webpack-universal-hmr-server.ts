@@ -1,12 +1,14 @@
 import webpack, { Stats } from 'webpack';
 //import WebpackDevServer from 'webpack-dev-server';
 import WebpackDevServer from './server/webpack-dev-server/Server';
+//import {WebpackDevSecOpsServer, ClientLogLevel} from './server/from-scratch/server';
 var config = require('../webpack.config');
 
 export class WebpackUniversalHMRServer {
 
     private compiler: webpack.Compiler;
     private server: WebpackDevServer;
+    //private server: WebpackDevSecOpsServer;
     private waitingResolves: ((stats: Stats) => void)[];
 
     constructor(port:number,quiet:boolean) {
@@ -17,7 +19,9 @@ export class WebpackUniversalHMRServer {
             inline: true,
             quiet
             //historyApiFallback: true
-        }).listen(port, 'localhost', function (err: Error) {
+        });
+        //this.server = new WebpackDevSecOpsServer(this.compiler, false, ClientLogLevel.INFO, {publicPath: '/'});
+        this.server.listen(port, 'localhost', function (err: Error) {
             if (err) {
                 console.log(err);
             }
