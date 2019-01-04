@@ -1,26 +1,31 @@
 import webpack, { Stats } from 'webpack';
 //import WebpackDevServer from 'webpack-dev-server';
 import WebpackDevServer from './server/webpack-dev-server/Server';
-//import {WebpackDevSecOpsServer, ClientLogLevel} from './server/from-scratch/server';
+import {WebpackDevSecOpsServer} from './server/from-scratch/server';
 var config = require('../webpack.config');
 
 export class WebpackUniversalHMRServer {
 
     private compiler: webpack.Compiler;
-    private server: WebpackDevServer;
-    //private server: WebpackDevSecOpsServer;
+    private server: WebpackDevSecOpsServer;
     private waitingResolves: ((stats: Stats) => void)[];
 
     constructor(port:number,quiet:boolean) {
         this.compiler = webpack(config);
-        this.server = new WebpackDevServer(this.compiler, {
+        const options = {
             publicPath: '/',
             hot: true,
             inline: true,
             quiet
             //historyApiFallback: true
-        });
-        //this.server = new WebpackDevSecOpsServer(this.compiler, false, ClientLogLevel.INFO, {publicPath: '/'});
+        };
+        const customServer = true;
+        if(customServer) {
+            this.server = new WebpackDevSecOpsServer(this.compiler, false, options);
+        } else {
+            this.server = new WebpackDevServer(this.compiler, options);
+        }
+        console.log("about to listen");
         this.server.listen(port, 'localhost', function (err: Error) {
             if (err) {
                 console.log(err);
@@ -30,6 +35,7 @@ export class WebpackUniversalHMRServer {
             }
         });
         this.waitingResolves = [];
+        console.log("about to tap");
         this.compiler.hooks.done.tap(WebpackUniversalHMRServer.name, (stats: Stats) => {
             if(this.waitingResolves.length > 0) {
                 for(const resolve of this.waitingResolves) {
@@ -41,6 +47,7 @@ export class WebpackUniversalHMRServer {
     }
 
     async waitUntilNextEmission() {
+        console.log("waitUntilNextEmission");
         return new Promise((resolve, reject) => {
             this.waitingResolves.push((stats: Stats) => {
                 if(stats.hasErrors()) {

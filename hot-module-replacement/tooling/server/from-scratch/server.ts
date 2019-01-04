@@ -59,7 +59,7 @@ export class WebpackDevSecOpsServer {
         errorDetails: false
     };
 
-    constructor(compilers: webpack.Compiler | webpack.MultiCompiler, showProgress: boolean, clientLogLevel: ClientLogLevel, options: webpackDevMiddleware.Options) {
+    constructor(compilers: webpack.Compiler | webpack.MultiCompiler, showProgress: boolean, options: webpackDevMiddleware.Options, clientLogLevel?: ClientLogLevel) {
         this.log = createLogger(options);
         this.clientLogLevel = clientLogLevel;
         this.sockets = [];
@@ -87,9 +87,9 @@ export class WebpackDevSecOpsServer {
             invalid.tap('webpack-dev-server', invalidPlugin);
             done.tap('webpack-dev-server', (stats) => {
                 console.log("about to send stats");
-                console.log(JSON.stringify(stats));
                 const toSend = stats.toJson(WebpackDevSecOpsServer.STATS);
-                console.log("stats to send = " + toSend);
+                console.log("num sockets = " + this.sockets.length);
+                console.log("hash = " + stats.hash);
                 this._sendStats(this.sockets, toSend, false);
                 this._stats = stats;
             });
@@ -100,11 +100,12 @@ export class WebpackDevSecOpsServer {
 
         this.app = express();
         // middleware for serving webpack bundle
-        this.middleware = webpackDevMiddleware(compilers, {...options, logLevel: 'info'});
+        this.middleware = webpackDevMiddleware(compilers, {...options, logLevel: this.log.options.level});
         this.app.all('*', (req, res, next) => {
             console.log("incoming request");
-            console.log(JSON.stringify(req));
-            next();
+            console.log(req.originalUrl);
+            console.log(req.method);
+            return next();
         });
 
         // compress is placed last and uses unshift so that it will be the first middleware used
@@ -114,6 +115,7 @@ export class WebpackDevSecOpsServer {
             this.app.use(compress());
         }
         */
+        this.app.use(this.middleware as any);
         this.app.get('*', this.serveMagicHtml);
         this.listeningApp = http.createServer(this.app);
     }
