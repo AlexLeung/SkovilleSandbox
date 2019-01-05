@@ -1,5 +1,6 @@
 import webpack from "webpack";
-import webpackDevMiddleware from 'webpack-dev-middleware';
+//import webpackDevMiddleware from 'webpack-dev-middleware';
+import {WebpackDevMiddleware, Options} from './middleware/from-scratch';
 import express from 'express';
 import http from 'http';
 import {URL} from 'url';
@@ -42,7 +43,7 @@ function createLogger (options) {
 // Here is an attempt at creating a webpack dev server from scratch without really knowing much about how it should work.
 export class WebpackDevSecOpsServer {
     private sockets: sockjs.Connection[];
-    private middleware: webpackDevMiddleware.WebpackDevMiddleware;
+    private middleware: WebpackDevMiddleware;
     private app: express.Express;
     private _stats: webpack.Stats;
     private listeningApp: http.Server;
@@ -59,7 +60,7 @@ export class WebpackDevSecOpsServer {
         errorDetails: false
     };
 
-    constructor(compilers: webpack.Compiler | webpack.MultiCompiler, showProgress: boolean, options: webpackDevMiddleware.Options, clientLogLevel?: ClientLogLevel) {
+    constructor(compilers: webpack.Compiler | webpack.MultiCompiler, showProgress: boolean, options: Options, clientLogLevel?: ClientLogLevel) {
         this.log = createLogger(options);
         this.clientLogLevel = clientLogLevel;
         this.sockets = [];
@@ -100,7 +101,7 @@ export class WebpackDevSecOpsServer {
 
         this.app = express();
         // middleware for serving webpack bundle
-        this.middleware = webpackDevMiddleware(compilers, {...options, logLevel: this.log.options.level});
+        this.middleware = new WebpackDevMiddleware(compilers, {...options, logLevel: this.log.options.level});
         this.app.all('*', (req, res, next) => {
             console.log("incoming request");
             console.log(req.originalUrl);
@@ -115,7 +116,7 @@ export class WebpackDevSecOpsServer {
             this.app.use(compress());
         }
         */
-        this.app.use(this.middleware as any);
+        this.app.use(this.middleware.getMiddleware());
         this.app.get('*', this.serveMagicHtml);
         this.listeningApp = http.createServer(this.app);
     }
