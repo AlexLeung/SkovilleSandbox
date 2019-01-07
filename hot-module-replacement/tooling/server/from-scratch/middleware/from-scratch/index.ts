@@ -6,10 +6,10 @@ import webpack from 'webpack';
 import {Logger} from 'loglevel';
 import {reporter} from './lib/reporter';
 import {createContext} from './lib/context';
-import MemoryFileSystem = require('memory-fs');
+import MemoryFileSystem from 'memory-fs';
 import { NextFunction, Request, Response } from 'express';
-import {DevMiddlewareError} from './lib/DevMiddlewareError';
 import path from 'path';
+import {DevMiddlewareError} from './lib/DevMiddlewareError';
 
 type Reporter = (middlewareOptions: Options, reporterOptions: ReporterOptions) => void;
 
@@ -122,23 +122,22 @@ export class WebpackDevMiddleware {
             // undefined.
             res.locals = res.locals || {};
         
-            function goNext() {
-            if (!context.options.serverSideRender) {
-                return next();
-            }
-        
-            return new Promise<any>(((resolve) => {
-                ready(context, () => {
-                res.locals.webpackStats = context.webpackStats;
-                res.locals.fs = context.fs;
-                resolve(next());
-                }, req);
-            }));
+            function goNext(): void | Promise<void> {
+                if (!context.options.serverSideRender) {
+                    return next();
+                }
+                return new Promise(((resolve) => {
+                    ready(context, () => {
+                        res.locals.webpackStats = context.webpackStats;
+                        res.locals.fs = context.fs;
+                        resolve(next());
+                    }, req);
+                }));
             }
         
             const acceptedMethods = context.options.methods || ['GET'];
             if (acceptedMethods.indexOf(req.method) === -1) {
-            return goNext();
+                return goNext();
             }
         
             let filename = getFilenameFromUrl(context.options.publicPath, context.compiler, req.url);

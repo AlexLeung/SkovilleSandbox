@@ -1,11 +1,11 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const MemoryFileSystem = require('memory-fs');
+import fs from 'fs';
+import path from 'path';
+import MemoryFileSystem from 'memory-fs';
 const { colors } = require('webpack-log');
 const NodeOutputFileSystem = require('webpack/lib/node/NodeOutputFileSystem');
-const DevMiddlewareError = require('./DevMiddlewareError');
+import {DevMiddlewareError} from './DevMiddlewareError';
 
 const { mkdirp } = new NodeOutputFileSystem();
 

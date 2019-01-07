@@ -1,0 +1,1 @@
+module.exports = require("webpack-dev-server/lib/utils/createDomain");

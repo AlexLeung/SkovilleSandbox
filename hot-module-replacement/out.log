@@ -1,0 +1,5 @@
+
+> isomorphic-typescript-sandbox@1.0.0 test-existing D:\Career\OpenSource\IsomorphicTypeScript\Sandbox\hot-module-replacement
+> mocha ./test/webpack-dev-server/**/*test.js
+
+Terminate batch job (Y/N)? 
