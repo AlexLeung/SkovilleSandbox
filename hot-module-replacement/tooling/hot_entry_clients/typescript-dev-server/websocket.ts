@@ -3,12 +3,15 @@
 /* global __resourceQuery WorkerGlobalScope self */
 /* eslint prefer-destructuring: off */
 
-var url = require('url');
-var stripAnsi = require('strip-ansi');
+import url from 'url';
+import stripAnsi from 'strip-ansi';
 import loglevel from 'loglevel';
-const log = loglevel.getLogger('webpack-dev-server')
-var socket = require('../webpack-dev-server/socket');
-var overlay = require('../webpack-dev-server/overlay');
+import {socket} from './socket';
+import {overlay} from './overlay';
+import hotEmitter from './emitter';
+import {log as webpackLog} from '../webpack/log.js';
+
+const log = loglevel.getLogger('webpack-dev-server');
 
 function getCurrentScriptSource() {
   // `document.currentScript` is the most accurate way to find the current script,
@@ -93,7 +96,7 @@ var onSocketMsg = {
     sendMsg('StillOk');
   },
   'log-level': function logLevel(level) {
-    require('../webpack/log.js').setLogLevel(level);
+    webpackLog.setLogLevel(level);
     switch (level) {
       case INFO:
       case ERROR:
@@ -220,8 +223,6 @@ function reloadApp() {
   }
   if (_hot) {
     log.info('[WDS] App hot update...');
-    // eslint-disable-next-line global-require
-    var hotEmitter = require('../webpack/emitter');
     hotEmitter.emit('webpackHotUpdate', currentHash);
     if (typeof self !== 'undefined' && self.window) {
       // broadcast update to window

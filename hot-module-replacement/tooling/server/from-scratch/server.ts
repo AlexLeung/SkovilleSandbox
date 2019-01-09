@@ -61,6 +61,7 @@ export class WebpackDevSecOpsServer {
     };
 
     constructor(compilers: webpack.Compiler | webpack.MultiCompiler, showProgress: boolean, options: Options, clientLogLevel?: ClientLogLevel) {
+        (options as any).hot = true;
         this.log = createLogger(options);
         this.clientLogLevel = clientLogLevel;
         this.sockets = [];
@@ -84,8 +85,14 @@ export class WebpackDevSecOpsServer {
         }
         const addHooks = (compiler: webpack.Compiler) => {
             const { compile, invalid, done } = compiler.hooks;
-            compile.tap('webpack-dev-server', invalidPlugin);
-            invalid.tap('webpack-dev-server', invalidPlugin);
+            compile.tap('webpack-dev-server', function() {
+                console.log("compilation tap");
+                invalidPlugin();
+            });
+            invalid.tap('webpack-dev-server', function() {
+                console.log("invalid tap");
+                invalidPlugin();
+            });
             done.tap('webpack-dev-server', (stats) => {
                 console.log("about to send stats");
                 const toSend = stats.toJson(WebpackDevSecOpsServer.STATS);
@@ -96,6 +103,9 @@ export class WebpackDevSecOpsServer {
             });
         };
         for(const compiler of webpackCompilers) {
+            if(!compiler.options.plugins.some(plugin => plugin instanceof webpack.HotModuleReplacementPlugin)) {
+                throw new Error("Webpack config must contain initialized HotModuleReplacementPlugin");
+            }
             addHooks(compiler);
         }
 
@@ -136,9 +146,7 @@ export class WebpackDevSecOpsServer {
                 }
             });
             socket.on('connection', (connection) => {
-                if (!connection) {
-                    return;
-                }
+                if (!connection) return;
                 this.sockets.push(connection);
                 connection.on('close', () => {
                     const idx = this.sockets.indexOf(connection);
@@ -192,6 +200,7 @@ export class WebpackDevSecOpsServer {
     }
 
     private serveMagicHtml(req: express.Request, res: express.Response, next: Function) {
+        console.log("ABOUT TO SERVE STATIC MAGIC HTML");
         const _path = req.path;
         try {
             const fileName = this.middleware.getFilenameFromUrl(`${_path}.js`)
@@ -220,6 +229,7 @@ export class WebpackDevSecOpsServer {
     }
 
     private _sendStats(sockets: sockjs.Connection[], stats, force) {
+        console.log("SEND STATS");
         if (
             !force && stats && (!stats.errors || stats.errors.length === 0) && stats.assets && 
             stats.assets.every(asset => !asset.emitted)

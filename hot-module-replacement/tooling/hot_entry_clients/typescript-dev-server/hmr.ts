@@ -4,7 +4,9 @@
 */
 /*globals __webpack_hash__ */
 export const RELOAD_SIGNAL = 'TypeScriptDevServerReload';
-var hotEmitter = require("../webpack/emitter");
+import hotEmitter from "./emitter";
+import {log} from "./log";
+import logApplyResult from "./log-apply-result";
 function reload() {
     hotEmitter.emit(RELOAD_SIGNAL);
 }
@@ -13,7 +15,6 @@ if (module.hot) {
 	var upToDate = function upToDate() {
 		return lastHash.indexOf(__webpack_hash__) >= 0;
 	};
-	var log = require("../webpack/log");
 	var check = function check() {
 		(module.hot as any)
 			.check(true)
@@ -32,7 +33,7 @@ if (module.hot) {
 					check();
 				}
 
-				require("../webpack/log-apply-result")(updatedModules, updatedModules);
+				logApplyResult(updatedModules, updatedModules);
 
 				if (upToDate()) {
 					log("info", "[HMR] App is up to date.");
