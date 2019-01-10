@@ -3,7 +3,10 @@
 // separate proces then kill the process, but it should in theory be easier to modify WebpackDevServer and make sure it is actually
 // closeable. If we wanted to use the thread route, we'd need to figure out a way to spwn a new ts-node thread rather than
 // just a generic node thread, which seems to be more time than it's worth.
+import {HMRServer} from '../tooling/hmr-server';
 import {WebpackUniversalHMRServer} from '../tooling/webpack-universal-hmr-server';
+import {PluginHMRServer} from '../tooling/plugin-hmr-server';
+
 import selenium from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox';
 import path from 'path';
@@ -20,8 +23,17 @@ const webdriver = new selenium.Builder()
     .setFirefoxOptions(firefoxOptions)
     .build();
 
-// Instantiate Webpack Universal HMR Server
-const hmrServer = new WebpackUniversalHMRServer(8080, true);
+// Instantiate HMR Server
+const HMRServerVersion: number = 1;
+let hmrServer: HMRServer;
+switch(HMRServerVersion) {
+    case 1:
+        hmrServer = new WebpackUniversalHMRServer(8080, true);
+        break;
+    case 2:
+        hmrServer = new PluginHMRServer(8080);
+        break;
+}
 
 function assert(condition:boolean, failureMessage:string) {
     if(!condition) throw new Error(failureMessage);

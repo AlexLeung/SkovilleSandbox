@@ -2,9 +2,10 @@ import webpack, { Stats } from 'webpack';
 //import WebpackDevServer from 'webpack-dev-server';
 import WebpackDevServer from './server/webpack-dev-server/Server';
 import {WebpackDevSecOpsServer} from './server/from-scratch/server';
+import {HMRServer} from './hmr-server';
 var config = require('../webpack.config');
 
-export class WebpackUniversalHMRServer {
+export class WebpackUniversalHMRServer implements HMRServer {
 
     private compiler: webpack.Compiler;
     private server: WebpackDevSecOpsServer;
@@ -35,7 +36,6 @@ export class WebpackUniversalHMRServer {
             }
         });
         this.waitingResolves = [];
-        console.log("about to tap");
         this.compiler.hooks.done.tap(WebpackUniversalHMRServer.name, (stats: Stats) => {
             if(this.waitingResolves.length > 0) {
                 for(const resolve of this.waitingResolves) {
@@ -48,7 +48,7 @@ export class WebpackUniversalHMRServer {
 
     async waitUntilNextEmission() {
         console.log("waitUntilNextEmission");
-        return new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             this.waitingResolves.push((stats: Stats) => {
                 if(stats.hasErrors()) {
                     reject(stats.compilation.errors.join("\n"));
@@ -61,7 +61,7 @@ export class WebpackUniversalHMRServer {
 
     async close() {
         const self = this;
-        return new Promise(function(resolve, reject) {
+        await new Promise(function(resolve, reject) {
             self.server.close(function() {
                 resolve();
             });
