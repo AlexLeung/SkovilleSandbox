@@ -1,15 +1,12 @@
-//import {WebpackDevSecOpsServerPlugin} from './webpack-dev-sec-ops-plugin/plugin';
+import {WebpackDevSecOpsServerPlugin} from './webpack-dev-sec-ops-plugin/plugin';
 import { HMRServer } from './hmr-server';
 import webpack from 'webpack';
 
-const config: webpack.Configuration = {
+function createConfig(port: number): webpack.Configuration { return {
     devtool: 'eval',
     mode: 'development',
     entry: [
-        //'webpack-dev-server/client?http://localhost:8080',
-        './tooling/hot_entry_clients/typescript-dev-server/websocket?http://localhost:8080',
-        //'webpack/hot/dev-server',
-        './tooling/hot_entry_clients/typescript-dev-server/browser-reload',
+        `./tooling/webpack-dev-sec-ops-plugin/client/index.ts?http://localhost:${port}`,
         './src/web/index.ts',
     ],
     module: {
@@ -29,19 +26,20 @@ const config: webpack.Configuration = {
         extensions: ['.tsx', '.ts', '.js']
     },
     plugins: [
-        //new WebpackDevSecOpsServerPlugin(),
         new webpack.HotModuleReplacementPlugin(),
-        new webpack.NoEmitOnErrorsPlugin()
+        new webpack.NoEmitOnErrorsPlugin(),
+        new WebpackDevSecOpsServerPlugin()
     ]
-};
+};}
 
 export class PluginHMRServer implements HMRServer {
 
     private compiler: webpack.Compiler;
     private waitingResolves: ((stats: webpack.Stats) => void)[];
-    
+    private watchingInstance: webpack.Compiler.Watching;
+
     public constructor(port: number) {
-        this.compiler = webpack(config);
+        this.compiler = webpack(createConfig(port));
         this.waitingResolves = [];
         this.compiler.hooks.done.tap(PluginHMRServer.name, (stats: webpack.Stats) => {
             if(this.waitingResolves.length > 0) {
@@ -50,6 +48,9 @@ export class PluginHMRServer implements HMRServer {
                 }
                 this.waitingResolves = [];
             }
+        });
+        this.watchingInstance = this.compiler.watch({}, () => {
+            console.log("watch");
         });
     }
 
@@ -67,6 +68,11 @@ export class PluginHMRServer implements HMRServer {
     }
 
     public async close() {
-        
+        await new Promise((resolve, reject) => {
+            this.watchingInstance.close(() => {
+                console.log("watchingInstance close callback");
+                resolve();
+            })
+        });
     }
 }
