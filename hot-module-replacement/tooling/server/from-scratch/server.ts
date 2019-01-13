@@ -127,7 +127,7 @@ export class WebpackDevSecOpsServer {
         }
         */
         this.app.use(this.middleware.getMiddleware());
-        this.app.get('*', this.serveMagicHtml);
+        //this.app.get('*', this.serveMagicHtml);
         this.listeningApp = http.createServer(this.app);
     }
 
@@ -200,6 +200,7 @@ export class WebpackDevSecOpsServer {
     }
 
     private serveMagicHtml(req: express.Request, res: express.Response, next: Function) {
+        /*
         console.log("ABOUT TO SERVE STATIC MAGIC HTML");
         const _path = req.path;
         try {
@@ -226,6 +227,7 @@ export class WebpackDevSecOpsServer {
         } catch (err) {
             return next();
         }
+        */
     }
 
     private _sendStats(sockets: sockjs.Connection[], stats, force) {

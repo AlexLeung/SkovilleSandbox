@@ -96,9 +96,9 @@ export class WebpackDevMiddleware {
         }
     }
 
-    public getFilenameFromUrl(url: string): string | false {
-        return getFilenameFromUrl.bind(this, this.context.options.publicPath, this.context.compiler);
-    }
+    //public getFilenameFromUrl(url: string): string | false {
+    //    return getFilenameFromUrl.bind(this, this.context.options.publicPath, this.context.compiler);
+    //}
   
     public invalidate(callback) {
         callback = callback || noop;

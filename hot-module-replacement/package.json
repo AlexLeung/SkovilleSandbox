@@ -7,7 +7,8 @@
   "scripts": {
     "hmr": "ts-node ./tooling/command-line-entry.ts",
     "test": "ts-node ./test/web.test.ts",
-    "test-existing": "mocha ./test/webpack-dev-server/**/*test.js"
+    "test-existing": "mocha ./test/webpack-dev-server/**/*test.js",
+    "plugin": "ts-node ./tooling/plugin-hmr-server.ts"
   },
   "devDependencies": {
     "@babel/generator": "^7.2.2",
@@ -48,6 +49,7 @@
     "zombie": "^6.1.4"
   },
   "dependencies": {
+    "clusterws": "^3.2.0",
     "mobx": "^5.6.0",
     "mobx-react": "^5.3.6",
     "react": "^16.6.3",

@@ -1,36 +1,44 @@
-import {WebpackDevSecOpsServerPlugin} from './webpack-dev-sec-ops-plugin/plugin';
+import {WebpackDevSecOpsPlugin,WebpackDevSecOpsClusterWSWorkerBuilder} from './webpack-dev-sec-ops';
 import { HMRServer } from './hmr-server';
 import webpack from 'webpack';
+import ClusterWS from 'clusterws';
 
-function createConfig(port: number): webpack.Configuration { return {
-    devtool: 'eval',
-    mode: 'development',
-    entry: [
-        `./tooling/webpack-dev-sec-ops-plugin/client/index.ts?http://localhost:${port}`,
-        './src/web/index.ts',
-    ],
-    module: {
-        rules: [
-            {
-                test: /\.tsx?$/,
-                use: {
-                    loader: 'awesome-typescript-loader',
-                    options: {
-                        silent: true
+function createConfig(port: number): webpack.Configuration {
+    const workerBuilder = new WebpackDevSecOpsClusterWSWorkerBuilder();
+    const server = new ClusterWS({
+        port,
+        worker: workerBuilder.getWorker()
+    });
+    return {
+        devtool: 'eval',
+        mode: 'development',
+        entry: [
+            `./tooling/webpack-dev-sec-ops-plugin/client/web.ts?http://localhost:${port}`,
+            './src/web/index.ts',
+        ],
+        module: {
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    use: {
+                        loader: 'awesome-typescript-loader',
+                        options: {
+                            silent: true
+                        }
                     }
                 }
-            }
+            ]
+        },
+        resolve: {
+            extensions: ['.tsx', '.ts', '.js']
+        },
+        plugins: [
+            new webpack.HotModuleReplacementPlugin(),
+            new webpack.NoEmitOnErrorsPlugin(),
+            new WebpackDevSecOpsPlugin("web", workerBuilder)
         ]
-    },
-    resolve: {
-        extensions: ['.tsx', '.ts', '.js']
-    },
-    plugins: [
-        new webpack.HotModuleReplacementPlugin(),
-        new webpack.NoEmitOnErrorsPlugin(),
-        new WebpackDevSecOpsServerPlugin()
-    ]
-};}
+    };
+}
 
 export class PluginHMRServer implements HMRServer {
 
@@ -76,3 +84,5 @@ export class PluginHMRServer implements HMRServer {
         });
     }
 }
+
+new PluginHMRServer(8080);
