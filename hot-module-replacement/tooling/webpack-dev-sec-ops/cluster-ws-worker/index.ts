@@ -32,7 +32,6 @@ export class WebpackDevSecOpsClusterWSWorkerBuilder {
     }
 
     public registerCompiler(id: string, compiler: webpack.Compiler) {
-        const fs = new MemoryFileSystem();
         let sockets: Socket[];
         if(this.registry[id]) {
             const registeryEntry = this.registry[id];
@@ -45,17 +44,28 @@ export class WebpackDevSecOpsClusterWSWorkerBuilder {
             sockets = [];
             this.registry[id] = { compiler, sockets };
         }
-        compiler.outputFileSystem = fs;
+        compiler.hooks.watchRun.tap("WebpackDevSecOps", function() {
+            compiler.outputFileSystem = new MemoryFileSystem();
+        });
         compiler.hooks.done.tap("WebpackDevSecOps", function(stats) {
-            
+            console.log("DONE");
         });
         this.middleware.get("*", function(req, res, next) {
+            const fs: MemoryFileSystem = compiler.outputFileSystem as any;
+            if(fs instanceof MemoryFileSystem) {
+                console.log("an instance");
+            } else {
+                console.log("not an instance");
+            }
+            console.log("GET INITIATED: " + req.path);
             // If unable to convert the request url to a path within the memory file system, send nothing.
             const publicPath = (compiler.options.output && compiler.options.output.publicPath) || "/";
             const outputPath = (compiler as any).outputPath;
             if(req.path.indexOf(publicPath) !== -1) {
-                const adjustedPath = fs.normalize(path.resolve(outputPath + '/' + (req.path.substring(publicPath.length))));
+                //const adjustedPath = fs.normalize(path.resolve(outputPath + '/' + (req.path.substring(publicPath.length))));
+                const adjustedPath = path.resolve(outputPath + '/' + (req.path.substring(publicPath.length)));
                 console.log("publicPath: " + publicPath + ", outputPath = " + outputPath + ", adjustedPath = " + adjustedPath);
+                console.log(fs.existsSync("D:\\"));
                 if(fs.existsSync(adjustedPath)) {
                     console.log("EXISTS");
                     res.setHeader("Content-Type", mime.getType(adjustedPath));

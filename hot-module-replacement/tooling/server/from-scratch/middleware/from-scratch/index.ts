@@ -176,7 +176,12 @@ export class WebpackDevMiddleware {
                 }
         
                 // server content
+                //console.log("CONTENT TIME");
+                //console.log(filename);
+                //console.log(context.fs.readdirSync("D:\\").join(" "));
                 let content = context.fs.readFileSync(filename);
+                //console.log("END CONTENT TIME");
+                //process.exit();
                 content = handleRangeHeaders(content, req, res);
         
                 let contentType = mime.getType(filename);

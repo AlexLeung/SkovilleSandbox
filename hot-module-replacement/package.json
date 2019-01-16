@@ -8,7 +8,7 @@
     "hmr": "ts-node ./tooling/command-line-entry.ts",
     "test": "ts-node ./test/web.test.ts",
     "test-existing": "mocha ./test/webpack-dev-server/**/*test.js",
-    "plugin": "ts-node ./tooling/plugin-hmr-server.ts"
+    "plugin": "ts-node ./test/plugin-run.ts"
   },
   "devDependencies": {
     "@babel/generator": "^7.2.2",

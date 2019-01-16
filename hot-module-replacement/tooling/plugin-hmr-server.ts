@@ -84,5 +84,3 @@ export class PluginHMRServer implements HMRServer {
         });
     }
 }
-
-new PluginHMRServer(8080);

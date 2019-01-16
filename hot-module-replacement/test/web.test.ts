@@ -24,7 +24,7 @@ const webdriver = new selenium.Builder()
     .build();
 
 // Instantiate HMR Server
-const HMRServerVersion: number = 2;
+const HMRServerVersion: number = 1;
 let hmrServer: HMRServer;
 switch(HMRServerVersion) {
     case 1:
