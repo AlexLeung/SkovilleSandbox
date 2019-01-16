@@ -44,14 +44,11 @@ export class WebpackDevSecOpsClusterWSWorkerBuilder {
             sockets = [];
             this.registry[id] = { compiler, sockets };
         }
-        compiler.hooks.watchRun.tap("WebpackDevSecOps", function() {
-            compiler.outputFileSystem = new MemoryFileSystem();
-        });
+        const fs = compiler.outputFileSystem = new MemoryFileSystem();
         compiler.hooks.done.tap("WebpackDevSecOps", function(stats) {
             console.log("DONE");
         });
         this.middleware.get("*", function(req, res, next) {
-            const fs: MemoryFileSystem = compiler.outputFileSystem as any;
             if(fs instanceof MemoryFileSystem) {
                 console.log("an instance");
             } else {

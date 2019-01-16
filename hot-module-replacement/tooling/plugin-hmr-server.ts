@@ -2,6 +2,7 @@ import {WebpackDevSecOpsPlugin,WebpackDevSecOpsClusterWSWorkerBuilder} from './w
 import { HMRServer } from './hmr-server';
 import webpack from 'webpack';
 import ClusterWS from 'clusterws';
+import HTMLWebpackPlugin from 'html-webpack-plugin';
 
 function createConfig(port: number): webpack.Configuration {
     const workerBuilder = new WebpackDevSecOpsClusterWSWorkerBuilder();
@@ -33,6 +34,7 @@ function createConfig(port: number): webpack.Configuration {
             extensions: ['.tsx', '.ts', '.js']
         },
         plugins: [
+            new HTMLWebpackPlugin(),
             new webpack.HotModuleReplacementPlugin(),
             new webpack.NoEmitOnErrorsPlugin(),
             new WebpackDevSecOpsPlugin("web", workerBuilder)
@@ -58,7 +60,7 @@ export class PluginHMRServer implements HMRServer {
             }
         });
         this.watchingInstance = this.compiler.watch({}, () => {
-            console.log("watch");
+            console.log("WATCH");
         });
     }
 
