@@ -1,8 +1,8 @@
 import webpack, { Stats } from 'webpack';
 //import WebpackDevServer from 'webpack-dev-server';
 import WebpackDevServer from './server/webpack-dev-server/Server';
-import {WebpackDevSecOpsServer} from './server/minimal-server';
-//import {WebpackDevSecOpsServer} from './server/from-scratch/server';
+//import {WebpackDevSecOpsServer} from './server/minimal-server';
+import {WebpackDevSecOpsServer} from './server/from-scratch/server';
 import {HMRServer} from './hmr-server';
 var config = require('../webpack.config');
 

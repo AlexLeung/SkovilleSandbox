@@ -14,7 +14,7 @@ function createConfig(port: number): webpack.Configuration {
         devtool: 'eval',
         mode: 'development',
         entry: [
-            //`./tooling/webpack-dev-sec-ops-plugin/client/web.ts?http://localhost:${port}`,
+            `./tooling/webpack-dev-sec-ops-plugin/client/web.ts?http://localhost:${port}`,
             './src/web/index.ts',
         ],
         module: {
@@ -37,7 +37,11 @@ function createConfig(port: number): webpack.Configuration {
             new HTMLWebpackPlugin(),
             new webpack.HotModuleReplacementPlugin(),
             new webpack.NoEmitOnErrorsPlugin()
-        ]
+        ],
+        stats: {
+            colors: true,
+            
+        }
     };
 }
 
@@ -60,8 +64,17 @@ export class PluginHMRServer implements HMRServer {
                 this.waitingResolves = [];
             }
         });
-        this.watchingInstance = this.compiler.watch({}, () => {
-            console.log("WATCH");
+        this.watchingInstance = this.compiler.watch({}, (err) => {
+            if (err) {
+                console.log("WATCH ERROR START");
+                console.error(err.stack || err);
+                if ((err as any).details) {
+                    console.error((err as any).details);
+                }
+                console.log("WATCH ERROR END");
+            } else {
+                console.log("NO WATCH ERROR");
+            }
         });
     }
 
