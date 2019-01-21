@@ -49,11 +49,11 @@
     "zombie": "^6.1.4"
   },
   "dependencies": {
-    "clusterws": "^3.2.0",
     "mobx": "^5.6.0",
     "mobx-react": "^5.3.6",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
+    "tapable": "^1.1.1",
     "winston": "^3.1.0"
   }
 }

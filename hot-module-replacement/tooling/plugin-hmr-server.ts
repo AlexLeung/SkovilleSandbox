@@ -1,20 +1,15 @@
-import {WebpackDevSecOpsPlugin,WebpackDevSecOpsClusterWSWorkerBuilder} from './webpack-dev-sec-ops';
+import {WebpackDevSecOps} from './webpack-dev-sec-ops';
+import {WebpackDevSecOpsServer} from './webpack-dev-sec-ops/server';
 import { HMRServer } from './hmr-server';
 import webpack from 'webpack';
-import ClusterWS from 'clusterws';
 import HTMLWebpackPlugin from 'html-webpack-plugin';
 
-const workerBuilder = new WebpackDevSecOpsClusterWSWorkerBuilder();
 function createConfig(port: number): webpack.Configuration {
-    const server = new ClusterWS({
-        port,
-        worker: workerBuilder.getWorker()
-    });
     return {
         devtool: 'eval',
         mode: 'development',
         entry: [
-            `./tooling/webpack-dev-sec-ops-plugin/client/web.ts?http://localhost:${port}`,
+            `./tooling/webpack-dev-sec-ops/client/web.ts?http://localhost:${port}`,
             './src/web/index.ts',
         ],
         module: {
@@ -36,11 +31,11 @@ function createConfig(port: number): webpack.Configuration {
         plugins: [
             new HTMLWebpackPlugin(),
             new webpack.HotModuleReplacementPlugin(),
-            new webpack.NoEmitOnErrorsPlugin()
+            new webpack.NoEmitOnErrorsPlugin(),
+            new WebpackDevSecOps.Plugin({id: "web"})
         ],
         stats: {
             colors: true,
-            
         }
     };
 }
@@ -52,9 +47,8 @@ export class PluginHMRServer implements HMRServer {
     private watchingInstance: webpack.Compiler.Watching;
 
     public constructor(port: number) {
-        const test = new WebpackDevSecOpsPlugin("web", workerBuilder);
+        new WebpackDevSecOpsServer(port);
         this.compiler = webpack(createConfig(port));
-        test.apply(this.compiler);
         this.waitingResolves = [];
         this.compiler.hooks.done.tap(PluginHMRServer.name, (stats: webpack.Stats) => {
             if(this.waitingResolves.length > 0) {
