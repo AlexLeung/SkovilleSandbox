@@ -9,7 +9,9 @@ function createConfig(port: number): webpack.Configuration {
         devtool: 'eval',
         mode: 'development',
         entry: [
-            `./tooling/webpack-dev-sec-ops/client/web.ts?http://localhost:${port}`,
+            `./tooling/webpack-dev-sec-ops/typescript-dev-server/websocket?http://localhost:${port}`,
+            './tooling/webpack-dev-sec-ops/typescript-dev-server/browser-reload',
+            //`./tooling/webpack-dev-sec-ops/client/web.ts?http://localhost:${port}`,
             './src/web/index.ts',
         ],
         module: {

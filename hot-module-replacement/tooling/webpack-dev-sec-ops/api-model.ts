@@ -1,0 +1,1 @@
+export const SOCKET_MESSAGE_EVENT = "scoville-message";

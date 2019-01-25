@@ -69,7 +69,7 @@ export class CompilerManager {
         if(requestPath.indexOf(this.publicPath) !== -1) {
             const outputPath = (this.compiler as any).outputPath;
             const adjustedPath = path.resolve(outputPath + '/' + (requestPath.substring(this.publicPath.length)));
-            log.info("(requestPath:'" + this.publicPath + "', compiler.outputPath:'" + outputPath + "') => '" + adjustedPath + "'");
+            log.info("(publicPath: '" + this.publicPath + "', requestPath:'" + requestPath + "', compiler.outputPath:'" + outputPath + "') => '" + adjustedPath + "'");
             return adjustedPath;
         } else {
             log.error("Request path '" + requestPath + "' will not be served because it is not under webpack.config.output.publicPath of '" + this.publicPath + "'");

@@ -22,6 +22,8 @@
     "@types/react": "^16.7.6",
     "@types/react-dom": "^16.0.9",
     "@types/selenium-webdriver": "^3.0.14",
+    "@types/socket.io": "^2.1.2",
+    "@types/socket.io-client": "^1.4.32",
     "@types/sockjs": "^0.3.31",
     "@types/webpack": "^4.4.22",
     "@types/webpack-dev-middleware": "^2.0.2",
@@ -53,6 +55,8 @@
     "mobx-react": "^5.3.6",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
+    "socket.io": "^2.2.0",
+    "socket.io-client": "^2.2.0",
     "tapable": "^1.1.1",
     "winston": "^3.1.0"
   }
