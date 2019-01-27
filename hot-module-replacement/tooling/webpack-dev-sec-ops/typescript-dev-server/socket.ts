@@ -1,26 +1,33 @@
+/* global __resourceQuery */
+
 import socketio, {Socket} from 'socket.io-client';
 import {SOCKET_MESSAGE_EVENT} from '../api-model';
+import {ClientRuntime} from './runtime';
 
-interface ScovilleEvent {
-    type: any;
-    data: any;
+if(!__resourceQuery) {
+    throw new Error("You must add in a resource query with the port in the webpack config.");
 }
+const url = __resourceQuery.substring(1)
 
-export class SocketClient {
-    
+export class SocketClient extends ClientRuntime {
     private socket: typeof Socket;
 
-    public constructor(url: string, handlers: any) {
+    public constructor() {
+        super();
         this.socket = socketio(url);
         this.socket.on(SOCKET_MESSAGE_EVENT, (message: string) => {
+            console.log("received event");
             console.log(message);
-            const event: ScovilleEvent = JSON.parse(message);
-            if(handlers[event.type]) {
-                handlers[event.type](event.data);
-            } else {
-                console.log("no handler for event.type " + event.type);
-            }
+            this.handleMessage(message);
+        });
+        // TODO: refactor.
+        const socketioErrors = ['connect_error', 'connect_timeout', 'error', 'disconnect', 'reconnect_error', 'reconnect_failed'];
+        socketioErrors.forEach(error => {
+            console.log("connection error: " + error);
         });
     }
 
+    protected restartApplication() {
+        window.location.reload();
+    }
 }

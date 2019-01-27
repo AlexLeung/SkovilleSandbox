@@ -4,6 +4,8 @@ import {ReadStream} from 'fs';
 import path from 'path';
 import winston from 'winston';
 import fs from 'fs';
+import {PluginOptions} from './';
+import {MessageType, Message} from './api-model';
 
 const PLUGIN_NAME = "WebpackDevSecOps";
 const log = winston.createLogger({
@@ -22,8 +24,11 @@ export class CompilerManager {
     private compilationCallbacks: Function[];
     private publicPath: string;
 
-    public constructor(compiler: webpack.Compiler, onMessage: MessageHandler, memoryFS: boolean) {
-        if(memoryFS) {
+    private latestUpdateMessage: string;
+    private updateStrategyMessage: string;
+
+    public constructor(compiler: webpack.Compiler, onMessage: MessageHandler, options: PluginOptions) {
+        if(options.memoryFS) {
             this.fs = new MemoryFileSystem() as any;
             compiler.outputFileSystem = this.fs as any;
         } else {
@@ -34,7 +39,27 @@ export class CompilerManager {
         this.valid = false;
         this.compilationCallbacks = [];
         this.publicPath = this.getPublicPath();
+        this.latestUpdateMessage = null;
+
+        // TODO: consider refactoring.
+        const updateStrategyMessage: Message = {
+            type: MessageType.UpdateStrategy,
+            data: {
+                hot: options.hot,
+                restarting: options.restarting
+            }
+        };
+        this.updateStrategyMessage = JSON.stringify(updateStrategyMessage);
+
         this.addHooks();
+    }
+
+    public getLatestUpdateMessage(): string | null {
+        return this.latestUpdateMessage;
+    }
+
+    public getUpdateStrategyMessage(): string {
+        return this.updateStrategyMessage;
     }
 
     public async getReadStream(requestPath: string) {
@@ -84,10 +109,17 @@ export class CompilerManager {
     }
 
     private addHooks() {
-        this.compiler.hooks.invalid.tap(PLUGIN_NAME, () => {this.invalidate()});
-        this.compiler.hooks.run.tap(PLUGIN_NAME, () => {this.invalidate()});
-        this.compiler.hooks.watchRun.tap(PLUGIN_NAME, () => {this.invalidate()});
-        this.compiler.hooks.done.tap(PLUGIN_NAME, (stats) => {
+        this.compiler.hooks.compile.tap(PLUGIN_NAME, () => {console.log("inner compile hook");this.sendMessage({type:MessageType.Recompiling});});
+        this.compiler.hooks.invalid.tap(PLUGIN_NAME, () => {console.log("inner invalid hook");this.invalidate();this.sendMessage({type:MessageType.Recompiling});});
+        this.compiler.hooks.run.tap(PLUGIN_NAME, () => {console.log("inner run hook");this.invalidate()});
+        this.compiler.hooks.watchRun.tap(PLUGIN_NAME, () => {console.log("inner watchRun hook");this.invalidate()});
+        this.compiler.hooks.done.tap(PLUGIN_NAME, stats => {
+            const {compilation} = stats;
+            if(compilation.errors.length === 0 && compilation.assets.every(asset => !asset.emitted)) {
+                this.sendMessage({type:MessageType.NoChange});
+            } else {
+                this.sendUpdateMessage(stats);
+            }
             this.valid = true;
             // Consider doing the following after the nextTick, which is done in Webpack-Dev-Middleware
             const toStringOptions = this.compiler.options.stats;
@@ -110,6 +142,34 @@ export class CompilerManager {
                 this.compilationCallbacks = [];
             }
         });
+    }
+
+    private sendUpdateMessage(stats: webpack.Stats) {
+        const statsJSON = stats.toJson({
+            all: false,
+            hash: false,
+            assets: false,
+            warnings: true,
+            errors: true,
+            errorDetails: false
+        });
+        const updateMessage: Message = {
+            type: MessageType.Update,
+            data: {
+                hash: stats.hash,
+                errors: statsJSON.errors,
+                warnings: statsJSON.warnings
+            }
+        };
+        this.sendMessage(updateMessage);
+    }
+
+    private sendMessage(message:Message) {
+        const messageString = JSON.stringify(message);
+        if(message.type === MessageType.Update) {
+            this.latestUpdateMessage = messageString;
+        }
+        this.emitMessage(messageString);
     }
 
     private invalidate() {
