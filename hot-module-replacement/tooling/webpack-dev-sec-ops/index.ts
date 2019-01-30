@@ -1,7 +1,6 @@
 import webpack from 'webpack';
 import {CompilerManager} from './compiler-manager';
 import {ReadStream} from 'fs';
-import {AsyncParallelHook} from 'tapable';
 
 export interface PluginOptions {
     hot: boolean;
@@ -9,12 +8,11 @@ export interface PluginOptions {
     memoryFS: boolean;
 }
 
+type MessageSubscriber = (id: string, message: string) => void;
+
 export class WebpackDevSecOps {
 
-    public static hooks = {
-        onServerMessage: new AsyncParallelHook<string, string>(["id", "message"])
-    };
-
+    private static messageSubscribers: MessageSubscriber[] = [];
     private static registry: Record<string, CompilerManager> = {};
     private static registeredIds: string[] = [];
 
@@ -34,7 +32,7 @@ export class WebpackDevSecOps {
         }
 
         public apply(compiler: webpack.Compiler) {
-            const {registry, hooks: {onServerMessage}} = WebpackDevSecOps;
+            const {registry, messageSubscribers} = WebpackDevSecOps;
             const {id, options} = this;
             if(options.hot) {
                 // If there is no HotModuleReplacement plugin, throw error.
@@ -42,10 +40,19 @@ export class WebpackDevSecOps {
                 if(!hmrPluginPresent) throw new Error(`The "hot" option was set to true for compiler with id=${id}, but the webpack config does not contain an instance of webpack.HotModuleReplacementPlugin`);
             }
             registry[id] = new CompilerManager(compiler, message => {
-                onServerMessage.callAsync(id, message);
+                messageSubscribers.forEach(async subscriber => {subscriber(id, message);});
             }, options);
         }
 
+    }
+
+    public static subscribeToMessages(subscriber: MessageSubscriber) {
+        const {messageSubscribers} = WebpackDevSecOps;
+        messageSubscribers.push(subscriber);
+        return function unsubscribe() {
+            const index = messageSubscribers.indexOf(subscriber);
+            if(index !== -1) messageSubscribers.splice(index, 1);
+        }
     }
 
     public static async getReadStream(id: string, requestPath: string): Promise<ReadStream | false> {

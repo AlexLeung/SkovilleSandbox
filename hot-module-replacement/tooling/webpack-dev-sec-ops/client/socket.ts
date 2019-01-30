@@ -1,4 +1,4 @@
-/* global __resourceQuery */
+/*globals __resourceQuery*/
 
 import socketio, {Socket} from 'socket.io-client';
 import {SOCKET_MESSAGE_EVENT} from '../api-model';
@@ -16,18 +16,22 @@ export class SocketClient extends ClientRuntime {
         super();
         this.socket = socketio(url);
         this.socket.on(SOCKET_MESSAGE_EVENT, (message: string) => {
-            console.log("received event");
+            console.log("received message");
             console.log(message);
             this.handleMessage(message);
         });
         // TODO: refactor.
         const socketioErrors = ['connect_error', 'connect_timeout', 'error', 'disconnect', 'reconnect_error', 'reconnect_failed'];
         socketioErrors.forEach(error => {
-            console.log("connection error: " + error);
+            this.socket.on(error, (...args) => {
+                console.log("connection error: " + error + ", arguments: " + args);
+            })
         });
     }
 
-    protected restartApplication() {
+    public restartApplicationImpl() {
         window.location.reload();
     }
 }
+
+new SocketClient();

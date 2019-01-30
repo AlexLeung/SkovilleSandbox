@@ -24,14 +24,14 @@ const webdriver = new selenium.Builder()
     .build();
 
 // Instantiate HMR Server
-const HMRServerVersion: number = 1;
+const HMRServerVersion: number = 2;
 let hmrServer: HMRServer;
 switch(HMRServerVersion) {
     case 1:
         hmrServer = new WebpackUniversalHMRServer(8080, true);
         break;
     case 2:
-        hmrServer = new PluginHMRServer(8080);
+        hmrServer = new PluginHMRServer(8080, false);
         break;
 }
 

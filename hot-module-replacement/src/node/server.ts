@@ -1,24 +1,20 @@
-/*
 import http from 'http';
+import express from 'express';
 import {message} from './wording';
 
-let curNumber = 
+var theMessage = message;
 
+const app = express();
+app.get("/hello-world", (req, res) => {
+    res.send(theMessage);
+});
+app.listen(8000, () => {
+    console.log("listening");
+});
 
-var httpServer = http.createServer(function(req, res) {
-    var headers = {};
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    var body = "";
-    req.on('readable', function() {
-        var nextAddition = req.read();
-        if(nextAddition) {
-            body += nextAddition;
-        }
+if(module.hot) {
+    console.log("module is hot");
+    module.hot.accept("./wording", () => {
+        theMessage = require('./wording');
     });
-    req.on('end', function() {
-        console.log(body);
-        res.writeHead(200, headers);
-        res.end();
-    });
-}).listen(8000);
-*/
+}

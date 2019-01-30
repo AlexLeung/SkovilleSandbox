@@ -2,16 +2,15 @@ import webpack from 'webpack';
 import MemoryFileSystem from 'memory-fs';
 import {ReadStream} from 'fs';
 import path from 'path';
-import winston from 'winston';
 import fs from 'fs';
 import {PluginOptions} from './';
 import {MessageType, Message} from './api-model';
+import Logger from 'js-logger';
 
 const PLUGIN_NAME = "WebpackDevSecOps";
-const log = winston.createLogger({
-    format: winston.format.printf(info => (info.level == "error" ? "ERROR: " : "") + info.message),
-    transports: [new winston.transports.Console()]
-});
+
+const log = Logger;
+Logger.useDefaults();
 
 type MessageHandler = (message:string) => void;
 
@@ -115,7 +114,7 @@ export class CompilerManager {
         this.compiler.hooks.watchRun.tap(PLUGIN_NAME, () => {console.log("inner watchRun hook");this.invalidate()});
         this.compiler.hooks.done.tap(PLUGIN_NAME, stats => {
             const {compilation} = stats;
-            if(compilation.errors.length === 0 && compilation.assets.every(asset => !asset.emitted)) {
+            if(compilation.errors.length === 0 && Object.values(compilation.assets).every(asset => !(asset as any).emitted)) {
                 this.sendMessage({type:MessageType.NoChange});
             } else {
                 this.sendUpdateMessage(stats);
