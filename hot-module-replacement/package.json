@@ -10,7 +10,7 @@
     "test-existing": "mocha ./test/webpack-dev-server/**/*test.js",
     "plugin:web": "ts-node ./test/plugin-run-web.ts",
     "plugin:node": "ts-node ./test/plugin-run-node.ts",
-    "plugin-node-client": "ts-node ./tooling/webpack-dev-sec-ops/bin/run-node-bundle.ts"
+    "plugin-node-client": "ts-node ./tooling/webpack-dev-sec-ops/bin/scoville-webpack.ts"
   },
   "devDependencies": {
     "@babel/generator": "^7.2.2",
@@ -31,6 +31,7 @@
     "@types/webpack-dev-middleware": "^2.0.2",
     "@types/webpack-dev-server": "^3.1.1",
     "@types/webpack-env": "^1.13.6",
+    "@types/yargs": "^12.0.8",
     "awesome-typescript-loader": "^5.2.1",
     "file-loader": "^3.0.1",
     "html-webpack-plugin": "^3.2.0",
@@ -51,9 +52,11 @@
     "webpack": "^4.5.0",
     "webpack-cli": "^3.2.0",
     "webpack-dev-server": "^3.1.10",
+    "yargs": "^12.0.5",
     "zombie": "^6.1.4"
   },
   "dependencies": {
+    "chalk": "^2.4.2",
     "mobx": "^5.6.0",
     "mobx-react": "^5.3.6",
     "react": "^16.6.3",
