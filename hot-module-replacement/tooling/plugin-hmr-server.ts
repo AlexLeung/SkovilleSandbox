@@ -10,12 +10,12 @@ function createConfig(port: number, node: boolean): webpack.Configuration {
         mode: 'development',
         entry: node ? 
         [
-            `./tooling/webpack-dev-sec-ops/client/node?http://localhost:${port}`,
+            `./tooling/webpack-dev-sec-ops/client/node/default-client.ts?http://localhost:${port}`,
             './src/node/server.ts'
         ]
         :
         [
-            `./tooling/webpack-dev-sec-ops/client/socket?http://localhost:${port}`,
+            `./tooling/webpack-dev-sec-ops/client/web/default-client?http://localhost:${port}`,
             './src/web/index.ts',
         ],
         module: {

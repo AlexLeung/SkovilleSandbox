@@ -15,6 +15,8 @@ export type Message =
             hash: string;
             errors: string[];
             warnings: string[];
+            publicPath: string;
+            assets: string[];
         }
     } |
     {   type: MessageType.UpdateStrategy;

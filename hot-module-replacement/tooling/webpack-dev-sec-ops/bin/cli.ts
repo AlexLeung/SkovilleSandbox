@@ -67,12 +67,18 @@ export class CLI {
         if(fileNotGiven) {
             const downloadingNodeBundleRunner = new DownloadingNodeBundleRunner();
             try { await downloadingNodeBundleRunner.validate(url); }
-            catch(e) { this.printCLIError("url error: " + e.message); }
+            catch(e) {
+                this.printCLIError("url error: " + e.message);
+                if(e.stack) console.log(e.stack);
+            }
             return downloadingNodeBundleRunner;
         } else {
             const nodeBundleRunner = new NodeBundleRunner();
             try { await nodeBundleRunner.validate(file); }
-            catch(e) { this.printCLIError("file error: " + e.message); }
+            catch(e) { 
+                this.printCLIError("file error: " + e.message);
+                if(e.stack) console.log(e.stack);
+            }
             return nodeBundleRunner;
         }
     }

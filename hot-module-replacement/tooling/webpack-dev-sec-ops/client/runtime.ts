@@ -4,6 +4,7 @@ import stripAnsi from 'strip-ansi';
 import Logger from 'js-logger';
 import { MessageType, Message } from '../api-model';
 import { ILogger } from 'js-logger/src/types';
+import { ClientModuleRegistry } from './module-registry';
 
 Logger.useDefaults();
 Logger.setHandler(
@@ -21,15 +22,19 @@ Logger.setHandler(
     })
 );
 
-export abstract class ClientRuntime {
+type MessageMiddleware = (message: Message) => Promise<boolean>;
+
+export class ClientRuntime {
     private currentHash: string;
     private hotEnabled: boolean;
     private restartingEnabled: boolean;
-    private hotSwappingRuntime: HotSwapRuntime;
     private log: ILogger
+    private middleware: MessageMiddleware[];
+    private hotSwappingRuntime: HotSwapRuntime;
 
     public constructor() {
         this.log = Logger.get(ClientRuntime.name);
+        this.middleware = [];
         if(module.hot) {
             this.hotSwappingRuntime = new HotSwapRuntime(this);
         }
@@ -38,16 +43,23 @@ export abstract class ClientRuntime {
     public restartApplication() {
         if(this.restartingEnabled) {
             this.log.info("Restarting...");
-            this.restartApplicationImpl();
+            ClientModuleRegistry.getApplicationRestarter().restartApplication();
         } else {
             this.log.error("Manual Restart required.");
         }
     }
 
-    protected abstract restartApplicationImpl(): void;
+    public addMessageMiddleware(middleware: MessageMiddleware) {
+        this.middleware.push(middleware);
+    }
 
-    public handleMessage(messageString: string) {
+    public async handleMessage(messageString: string) {
         const message: Message = JSON.parse(messageString);
+        const middlewareResponses = await Promise.all(this.middleware.map(middleware => middleware(message)));
+        if(middlewareResponses.includes(false)) {
+            console.log("not applying message to runtime");
+            return;
+        }
         switch(message.type) {
             case MessageType.NoChange:
                 this.log.info('Nothing changed.');

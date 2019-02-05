@@ -1,4 +1,4 @@
-import webpack from 'webpack';
+import webpack, { compilation } from 'webpack';
 import MemoryFileSystem from 'memory-fs';
 import {ReadStream} from 'fs';
 import path from 'path';
@@ -21,7 +21,6 @@ export class CompilerManager {
     private fs: typeof fs;
     private valid: boolean;
     private compilationCallbacks: Function[];
-    private publicPath: string;
 
     private latestUpdateMessage: string;
     private updateStrategyMessage: string;
@@ -37,7 +36,6 @@ export class CompilerManager {
         this.emitMessage = onMessage;
         this.valid = false;
         this.compilationCallbacks = [];
-        this.publicPath = this.getPublicPath();
         this.latestUpdateMessage = null;
 
         // TODO: consider refactoring.
@@ -101,7 +99,7 @@ export class CompilerManager {
         }
     }
 
-    private getPublicPath() {
+    private get publicPath() {
         const {compiler} = this;
         const publicPath = (compiler.options.output && compiler.options.output.publicPath) || "/";
         return publicPath.endsWith("/") ? publicPath : publicPath + "/";
@@ -156,6 +154,8 @@ export class CompilerManager {
             type: MessageType.Update,
             data: {
                 hash: stats.hash,
+                publicPath: this.publicPath,
+                assets: Object.keys(stats.compilation.assets),
                 errors: statsJSON.errors,
                 warnings: statsJSON.warnings
             }
