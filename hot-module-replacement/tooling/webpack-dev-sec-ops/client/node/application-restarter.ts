@@ -35,9 +35,6 @@ export class NodeClientApplicationRestarter extends AbstractClientApplicationRes
             return true;
         });
         process.on("message", (nodeBundleRunnerResponse: ProcessCommunicationMessage) => {
-            console.log("received message from parent");
-            console.log(typeof nodeBundleRunnerResponse);
-            console.log(nodeBundleRunnerResponse);
             if(nodeBundleRunnerResponse.type !== ProcessCommunicationMessageType.UpdateResponse) {
                 throw new Error("unexpected message sent to child process of " + nodeBundleRunnerResponse);
             }

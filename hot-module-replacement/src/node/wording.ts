@@ -1,1 +1,1 @@
-export const message = "thing76";
+export const message = "<html><body>Jamba Moose</body></html>";

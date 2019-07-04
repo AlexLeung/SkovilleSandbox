@@ -10,8 +10,10 @@ export class CLI {
     public constructor() {
         this.buildYargs();
         this.validate()
-            .then(nodeBundleRunner => {
-                nodeBundleRunner.run();
+            .then(nodeBundleRunner => nodeBundleRunner.run())
+            .catch((error: Error) => {
+                Logger.red("Run Error: " + error.message + "\n");
+                if(error.stack) Logger.magenta(error.stack);
             });
     }
 
@@ -68,24 +70,25 @@ export class CLI {
             const downloadingNodeBundleRunner = new DownloadingNodeBundleRunner();
             try { await downloadingNodeBundleRunner.validate(url); }
             catch(e) {
-                this.printCLIError("url error: " + e.message);
-                if(e.stack) console.log(e.stack);
+                Logger.bold("url validation error:");
+                this.printCLIError(e.message);
+                if(e.stack) Logger.magenta(e.stack);
             }
             return downloadingNodeBundleRunner;
         } else {
             const nodeBundleRunner = new NodeBundleRunner();
             try { await nodeBundleRunner.validate(file); }
             catch(e) { 
-                this.printCLIError("file error: " + e.message);
-                if(e.stack) console.log(e.stack);
+                Logger.bold("file validation error:");
+                this.printCLIError(e.message);
+                if(e.stack) Logger.magenta(e.stack);
             }
             return nodeBundleRunner;
         }
     }
 
     private printCLIError(message: string) {
-        Logger.red(message);
-        console.log();
+        Logger.red(message + "\n");
         yargs.showHelp();
         process.exit();
     }

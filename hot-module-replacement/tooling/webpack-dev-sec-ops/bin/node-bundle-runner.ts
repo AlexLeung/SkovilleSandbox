@@ -25,7 +25,6 @@ export class NodeBundleRunner {
     protected shouldRestart: boolean = false;
 
     public async validate(bundleEntryPath: string) {
-        console.log("parent validate");
         const STANDARD_VALIDATION_ERROR_MESSAGE = `'${bundleEntryPath}' is not a valid file path`;
         if(!bundleEntryPath) throw new Error(STANDARD_VALIDATION_ERROR_MESSAGE);
         this.bundleEntryPath = path.resolve(bundleEntryPath);
@@ -36,25 +35,27 @@ export class NodeBundleRunner {
     }
 
     public async run() {
-        console.log("parent run");
         if(!this.valid) throw new Error("Bundle runner must be validated before running.");
         const bundleProcess = cp.fork(this.bundleEntryPath);
         bundleProcess
-            .on("message", (message: string) => {
-                this.handleMessage(JSON.parse(message), bundleProcess);
+            .on("message", (message: ProcessCommunicationMessage) => {
+                // TODO: here we need to validate if the incoming message really is a ProcessCommunicationMessage.
+                this.handleMessage(message, bundleProcess);
             })
             .on("error", err => {
                 Logger.red(err.name + ": " + err.message);
-                if(err.stack) {
-                    Logger.magenta(err.stack);
-                }
+                if(err.stack) Logger.magenta(err.stack);
             })
             .on("exit", (code, signal) => {
+                Logger.cyan("\nBundle process exited with code " + code + "\nBundle file = '" + this.bundleEntryPath + "'.");
                 if(this.shouldRestart) {
+                    Logger.yellow("Restarting...\n");
                     this.shouldRestart = false;
                     this.run();
+                } else {
+                    Logger.red("Exiting.\n");
+                    process.exit();
                 }
-                else process.exit(code);
             });
     }
 
@@ -74,7 +75,7 @@ export class NodeBundleRunner {
                         sequenceNumber: message.data.sequenceNumber
                     }
                 };
-                bundleProcess.send(JSON.stringify(response));
+                bundleProcess.send(response);
                 break;
             case ProcessCommunicationMessageType.UpdateResponse:
                 throw new Error("The node master process should not be receiving UpdateResponse messages");
@@ -93,13 +94,12 @@ export class DownloadingNodeBundleRunner extends NodeBundleRunner {
     private https: boolean;
 
     public async validate(bundleEntryURL: string) {
-        console.log("child validate");
         this.bundleEntryURL = url.parse(bundleEntryURL);
         const {protocol, host, pathname} = this.bundleEntryURL;
         if(!protocol || !host) {
             throw new Error("invalid URL string");
         }
-        const filename = path.basename(pathname || "initial-entry.js");
+        const filename = path.basename(pathname || "") || "initial-entry.js";
         this.bundleEntryPath = path.join(DownloadingNodeBundleRunner.BUNDLE_STORAGE_PATH, filename);
         switch(protocol) {
             case 'http:':
@@ -113,11 +113,9 @@ export class DownloadingNodeBundleRunner extends NodeBundleRunner {
         }
         await this.resetBundleSpace();
         await super.validate(this.bundleEntryPath);
-        
     }
 
     public async run() {
-        console.log("child run");
         if(this.shouldRestart) {
             await this.resetBundleSpace();
         }
@@ -126,20 +124,23 @@ export class DownloadingNodeBundleRunner extends NodeBundleRunner {
 
     private async download(url: string, outpath: string) {
         const client: typeof http | typeof https = this.https ? https : http;
-        await new Promise((resolve, reject) => {
+        const result = await new Promise<void|Error>(resolve => {
             client
                 .get(url, res => {
                     const writeStream = fs.createWriteStream(outpath);
+                    writeStream.on("finish", () => {resolve();});
                     res.pipe(writeStream);
-                    writeStream.on("finish", () => {
-                        writeStream.end(resolve);
-                    });
                 })
                 .on('error', async err => {
-                    await unlinkAsync(outpath);
-                    reject(err);
+                    if(await existsAsync(outpath)) {
+                        await unlinkAsync(outpath);
+                    }
+                    resolve(err);
                 });
         });
+        if(result instanceof Error) {
+            throw result;
+        }
     }
 
     protected async handleMessage(message: ProcessCommunicationMessage, bundleProcess: cp.ChildProcess) {
@@ -173,16 +174,18 @@ export class DownloadingNodeBundleRunner extends NodeBundleRunner {
 
     // TODO: handle case where someone adds file into folder before complete removal.
     //       Also handle case where someone puts a lock on one of the files (should probably fail immediately).
-    private async recursiveRemoval(path: string) {
-        const exists = await existsAsync(path);
+    private async recursiveRemoval(pathToRemove: string) {
+        const exists = await existsAsync(pathToRemove);
         if(exists) {
-            const stats = await statAsync(path);
+            const stats = await statAsync(pathToRemove);
             if(stats.isDirectory()) {
-                const children = await readdirAsync(path);
-                await Promise.all(children.map(this.recursiveRemoval));
-                await rmdirAsync(path);
+                const children = await readdirAsync(pathToRemove);
+                await Promise.all(children
+                    .map(child => path.join(pathToRemove, child))
+                    .map(this.recursiveRemoval.bind(this)));
+                await rmdirAsync(pathToRemove);
             } else {
-                await unlinkAsync(path);
+                await unlinkAsync(pathToRemove);
             }
         }
     }
